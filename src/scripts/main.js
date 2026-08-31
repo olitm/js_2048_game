@@ -48,10 +48,6 @@ const render = () => {
 };
 
 const handleMove = (moveMethod) => {
-  if (game.getStatus() !== 'playing') {
-    return;
-  }
-
   moveMethod();
   render();
   renderMessage();
@@ -101,6 +97,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 gameField.addEventListener('touchstart', (e) => {
+  e.preventDefault();
   startX = e.changedTouches[0].clientX;
   startY = e.changedTouches[0].clientY;
 });

@@ -173,10 +173,9 @@ class Game {
       return;
     }
 
-    const previousBoard = copyBoard(this.board);
     const { board, score } = moveFn(this.board);
 
-    if (boardsAreEqual(previousBoard, board)) {
+    if (boardsAreEqual(this.board, board)) {
       return;
     }
 
@@ -229,8 +228,9 @@ class Game {
         const cell = this.board[row][col];
 
         if (
-          cell === this.board[row][col + 1] ||
-          cell === this.board[row + 1]?.[col]
+          cell !== 0 &&
+          (cell === this.board[row][col + 1] ||
+            cell === this.board[row + 1]?.[col])
         ) {
           return true;
         }
