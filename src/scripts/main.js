@@ -1,8 +1,9 @@
 'use strict';
 
+const SWIPE_THRESHOLD = 30;
+
 const Game = require('../modules/Game.class');
 const game = new Game();
-
 const cells = document.querySelectorAll('.field-cell');
 const startButton = document.querySelector('.button');
 const startMessage = document.querySelector('.message-start');
@@ -10,6 +11,10 @@ const loseMessage = document.querySelector('.message-lose');
 const winMessage = document.querySelector('.message-win');
 const gameScore = document.querySelector('.game-score');
 const allMessages = document.querySelectorAll('.message');
+const gameField = document.querySelector('.game-field');
+
+let startX = 0;
+let startY = 0;
 
 const renderMessage = () => {
   const currentStatus = game.getStatus();
@@ -42,6 +47,21 @@ const render = () => {
   gameScore.textContent = String(game.getScore());
 };
 
+const handleMove = (moveMethod) => {
+  if (game.getStatus() !== 'playing') {
+    return;
+  }
+
+  moveMethod();
+  render();
+  renderMessage();
+};
+
+const updateUI = () => {
+  render();
+  renderMessage();
+};
+
 startButton.addEventListener('click', () => {
   if (startButton.classList.contains('start')) {
     game.start();
@@ -55,27 +75,64 @@ startButton.addEventListener('click', () => {
     startButton.textContent = 'Start';
   }
 
-  render();
-  renderMessage();
+  updateUI();
 });
 
 document.addEventListener('keydown', (e) => {
-  const moves = {
-    ArrowLeft: () => game.moveLeft(),
-    ArrowRight: () => game.moveRight(),
-    ArrowUp: () => game.moveUp(),
-    ArrowDown: () => game.moveDown(),
-  };
+  switch (e.key) {
+    case 'ArrowLeft':
+      e.preventDefault();
+      handleMove(() => game.moveLeft());
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      handleMove(() => game.moveRight());
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      handleMove(() => game.moveUp());
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      handleMove(() => game.moveDown());
+      break;
+    default:
+  }
+});
 
-  const move = moves[e.key];
+gameField.addEventListener('touchstart', (e) => {
+  startX = e.changedTouches[0].clientX;
+  startY = e.changedTouches[0].clientY;
+});
 
-  if (!move) {
+gameField.addEventListener('touchend', (e) => {
+  if (game.getStatus() !== 'playing') {
     return;
   }
 
-  e.preventDefault();
-  move();
+  const endX = e.changedTouches[0].clientX;
+  const endY = e.changedTouches[0].clientY;
+  const deltaX = endX - startX;
+  const deltaY = endY - startY;
 
-  render();
-  renderMessage();
+  if (
+    Math.abs(deltaX) < SWIPE_THRESHOLD &&
+    Math.abs(deltaY) < SWIPE_THRESHOLD
+  ) {
+    return;
+  }
+
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    if (deltaX > 0) {
+      handleMove(() => game.moveRight());
+    } else {
+      handleMove(() => game.moveLeft());
+    }
+  } else {
+    if (deltaY > 0) {
+      handleMove(() => game.moveDown());
+    } else {
+      handleMove(() => game.moveUp());
+    }
+  }
 });
